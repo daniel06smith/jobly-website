@@ -6,8 +6,8 @@ export function JoblyLogo({ className = "" }) {
       <Image 
         src="/placeholder-logo.png" 
         alt="Jobly Logo" 
-        width={60} 
-        height={60}
+        width={160} 
+        height={160}
         className="rounded-lg"
       />
       <span className="text-xl font-medium text-foreground">jobly</span>
