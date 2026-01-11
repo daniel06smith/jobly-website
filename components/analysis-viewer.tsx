@@ -17,6 +17,9 @@ export function AnalysisViewer({ analysis }) {
   const [modifiedResumeData, setModifiedResumeData] = useState<ResumeData | null>(
     analysis.resumes?.structured_data || null,
   )
+  const [modifiedResumeText, setModifiedResumeText] = useState<string>(
+    analysis.resumes?.extracted_text || "",
+  )
   const router = useRouter()
   const resumeRef = useRef<HTMLDivElement>(null)
 
@@ -42,6 +45,9 @@ export function AnalysisViewer({ analysis }) {
         if (!prev) return prev
         return applyChange(prev, suggestion.path, suggestion.suggestedText)
       })
+    } else if (!isStructuredResume && suggestion.originalText && suggestion.suggestedText) {
+      // For non-structured resumes, replace text directly
+      setModifiedResumeText((prev) => prev.replace(suggestion.originalText, suggestion.suggestedText))
     }
 
     setSelectedSuggestion(null)
@@ -65,6 +71,9 @@ export function AnalysisViewer({ analysis }) {
         if (!prev) return prev
         return applyChange(prev, suggestion.path, suggestion.originalText)
       })
+    } else if (!isStructuredResume && suggestion.originalText && suggestion.suggestedText) {
+      // For non-structured resumes, replace back to original text
+      setModifiedResumeText((prev) => prev.replace(suggestion.suggestedText, suggestion.originalText))
     }
   }
 
@@ -168,17 +177,15 @@ export function AnalysisViewer({ analysis }) {
               <span className="text-xs opacity-75">(+{currentScore - analysis.overall_score})</span>
             )}
           </div>
-          {isStructuredResume && (
-            <Button
-              onClick={handleDownload}
-              size="sm"
-              className="bg-teal-600 hover:bg-teal-700 text-white"
-              disabled={acceptedIds.size === 0}
-            >
-              <Download className="h-4 w-4 mr-2" />
-              Download PDF
-            </Button>
-          )}
+          <Button
+            onClick={handleDownload}
+            size="sm"
+            className="bg-teal-600 hover:bg-teal-700 text-white"
+            disabled={acceptedIds.size === 0}
+          >
+            <Download className="h-4 w-4 mr-2" />
+            Download PDF
+          </Button>
         </div>
       </header>
 
@@ -191,7 +198,7 @@ export function AnalysisViewer({ analysis }) {
                 <ResumePreview data={modifiedResumeData} />
               ) : (
                 <pre className="whitespace-pre-wrap font-sans text-sm leading-relaxed">
-                  {analysis.resumes?.extracted_text || "No resume content available"}
+                  {modifiedResumeText || "No resume content available"}
                 </pre>
               )}
             </div>
@@ -377,14 +384,6 @@ export function AnalysisViewer({ analysis }) {
             </div>
           </div>
 
-          {/* Download Footer - Only for PDF uploads */}
-          {!isStructuredResume && (
-            <div className="border-t p-4 bg-gray-50 flex-shrink-0">
-              <p className="text-xs text-muted-foreground text-center">
-                Build your resume with our form builder to enable PDF download with applied changes
-              </p>
-            </div>
-          )}
         </div>
       </div>
     </div>
